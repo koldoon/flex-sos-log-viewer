@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                autoDrawBackground="false" width="100%">
+
+    <s:states>
+        <s:State name="normal" />
+        <s:State name="selected" />
+    </s:states>
+
+    <s:Rect width="100%" height="100%" includeIn="selected">
+        <s:stroke>
+            <s:SolidColorStroke color="0xffffff" alpha="0.2" />
+        </s:stroke>
+        <s:fill>
+            <s:SolidColor color="0xffffff" alpha="0.1" />
+        </s:fill>
+    </s:Rect>
+
+    <s:HGroup left="5" right="5" bottom="3" top="3" verticalAlign="baseline">
+        <s:Label id="timeLabel" color="white" maxDisplayedLines="1" width="75" />
+        <s:Label id="keyLabel" width="50" maxDisplayedLines="1" fontWeight="bold" textAlign="right" />
+
+        <s:Label id="msgLabel" width="100%" color="white" maxDisplayedLines="1" fontFamily="consolas" fontSize="13" />
+        <s:Label id="categoryLabel" color="white" maxDisplayedLines="1" alpha="0.5" textAlign="right" />
+    </s:HGroup>
+
+
+    <fx:Script><![CDATA[
+        import ru.koldoon.model.LogItem;
+
+        [Bindable(event="__NoChangeEvent__")]
+        public static const KEY_COLOR:Object = { };
+        {
+            KEY_COLOR["RESULT"] = 0x40E840;
+            KEY_COLOR["CALL"] = 0xEEEC57;
+            KEY_COLOR["ERROR"] = 0xFF463D;
+            KEY_COLOR["WARN"] = 0xDC8024;
+        }
+
+        override public function set data(value:Object):void
+        {
+            super.data = value;
+
+            var logItem:LogItem = LogItem(data);
+            if (!logItem)
+                return;
+
+            timeLabel.text = logItem.timeString;
+            keyLabel.text = logItem.key;
+            keyLabel.setStyle("color", KEY_COLOR[logItem.key] || 0xffffff);
+            msgLabel.text = logItem.lineMessage;
+            categoryLabel.text = logItem.category;
+        }
+        ]]></fx:Script>
+</s:ItemRenderer>
