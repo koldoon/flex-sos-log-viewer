@@ -1,17 +1,8 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-                autoDrawBackground="false" width="100%">
+                autoDrawBackground="false" width="100%" cacheAsBitmap="true">
 
     <s:Label text="{data}" left="5" right="5" bottom="2" top="2"
              color="white" maxDisplayedLines="1" fontFamily="consolas" fontSize="12"/>
 
-    <fx:Script><![CDATA[
-        [Bindable(event="__NoChangeEvent__")]
-        public static const KEY_COLOR:Object = { };
-        {
-            KEY_COLOR["RESULT"] = 0x40E840;
-            KEY_COLOR["CALL"] = 0xEEEC57;
-            KEY_COLOR["ERROR"] = 0xFF463D;
-        }
-        ]]></fx:Script>
 </s:ItemRenderer>

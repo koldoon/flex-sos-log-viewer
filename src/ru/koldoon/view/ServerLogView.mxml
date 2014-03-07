@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+    <s:layout>
+        <s:VerticalLayout/>
+    </s:layout>
+
+    <s:Button label="Browse" id="browseButton" click="browseButton_clickHandler(event)"/>
+
+    <s:List id="logList" width="100%" height="100%" skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin"
+            itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"/>
+    <!--<s:TextArea id="logTextArea" width="100%" height="100%" cachePolicy="on" editable="false"-->
+    <!--paddingLeft="0" paddingRight="0" color="white" fontSize="12" fontFamily="consolas"-->
+    <!--contentBackgroundAlpha="0" borderVisible="false" focusThickness="0"-->
+    <!--horizontalScrollPolicy="auto" verticalScrollPolicy="auto"-->
+    <!--lineBreak="{ Settings.getInstance().wordWrapEnabled ? 'toFit' : 'explicit' }"/>-->
+
+    <fx:Script><![CDATA[
+        import mx.collections.ArrayCollection;
+
+        private var file:File = new File();
+
+        private function browseButton_clickHandler(event:MouseEvent):void
+        {
+
+            file.browseForOpen("Open log");
+            file.addEventListener(Event.SELECT, fileSelected);
+        }
+
+        private function fileSelected(event:Event):void
+        {
+            var fs:FileStream = new FileStream();
+            fs.open(file, FileMode.READ);
+            logList.dataProvider = new ArrayCollection(fs.readUTFBytes(fs.bytesAvailable).split("\n"));
+        }
+        ]]></fx:Script>
+</s:NavigatorContent>

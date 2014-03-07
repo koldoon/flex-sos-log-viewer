@@ -32,6 +32,7 @@ package ru.koldoon.model
         public function LoggerSocketServer()
         {
             initLogServer();
+            initPolicyServer();
         }
 
 
@@ -63,6 +64,13 @@ package ru.koldoon.model
             socketBuffer = "";
             activeConnection = true;
             dispatchEvent(new Event("clientConnected"));
+
+            dispatchLogEvent(
+                    {
+                        time:    new Date().getTime(),
+                        message: "LOGGER: Client connected",
+                        key:     "WARN"
+                    });
         }
 
         private function clientSocket_closeHandler(event:Event):void
@@ -70,6 +78,13 @@ package ru.koldoon.model
             activeConnection = false;
             clientSocket.removeEventListener(ProgressEvent.SOCKET_DATA, clientSocket_socketDataHandler);
             clientSocket.removeEventListener(Event.CLOSE, clientSocket_closeHandler);
+
+            dispatchLogEvent(
+                    {
+                        time:    (new Date()).getTime(),
+                        message: "LOGGER: Client Disconnected",
+                        key:     "WARN"
+                    });
         }
 
 
@@ -80,11 +95,8 @@ package ru.koldoon.model
             // Check policy request (once only)
             if (!policyDataSent && socketBuffer.indexOf("<policy-file-request/>") > -1)
             {
-                var policyXml:String = new CrossdomainXml();
-                clientSocket.writeUTFBytes(policyXml);
-                clientSocket.flush();
+                sendPolicyData(clientSocket);
                 policyDataSent = true;
-
                 return;
             }
 
@@ -112,14 +124,14 @@ package ru.koldoon.model
 
                 if (logObj)
                 {
-                    dispatchMsg(logObj);
+                    dispatchLogEvent(logObj);
                 }
             }
 
             socketBuffer = "";
         }
 
-        private function dispatchMsg(data:Object):void
+        private function dispatchLogEvent(data:Object):void
         {
             var logEvent:LogEvent = new LogEvent(LogEvent.MSG);
             logEvent.logItem.category = data.category;
@@ -128,6 +140,46 @@ package ru.koldoon.model
             logEvent.logItem.time = data.time;
 
             dispatchEvent(logEvent);
+        }
+
+
+        // -----------------------------------------------------------------------------------
+        // Flash Policy
+        // -----------------------------------------------------------------------------------
+
+        private var policySocketServer:ServerSocket = new ServerSocket();
+        private var policyClientSocket:Socket;
+
+        private function initPolicyServer():void
+        {
+            policySocketServer.bind(843, "127.0.0.1");
+            policySocketServer.addEventListener(ServerSocketConnectEvent.CONNECT, policyServer_connectHandler);
+            policySocketServer.listen();
+        }
+
+        private function policyServer_connectHandler(event:ServerSocketConnectEvent):void
+        {
+            policyClientSocket = event.socket;
+            policyClientSocket.addEventListener(ProgressEvent.SOCKET_DATA, policyClient_socketDataHandler);
+        }
+
+        public function policyClient_socketDataHandler(event:ProgressEvent):void
+        {
+            policyClientSocket.removeEventListener(ProgressEvent.SOCKET_DATA, policyClient_socketDataHandler);
+
+            var socketData:String = policyClientSocket.readUTFBytes(policyClientSocket.bytesAvailable);
+            if (socketData.indexOf("<policy-file-request/>") > -1)
+            {
+                sendPolicyData(policyClientSocket)
+                policyClientSocket.close();
+            }
+        }
+
+        private static function sendPolicyData(socket:Socket):void
+        {
+            var policyXml:String = new CrossdomainXml();
+            socket.writeUTFBytes(policyXml);
+            socket.flush();
         }
     }
 }

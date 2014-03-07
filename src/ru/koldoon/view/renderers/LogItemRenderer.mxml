@@ -1,27 +1,27 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-                autoDrawBackground="false" width="100%">
+                autoDrawBackground="false" width="100%" cacheAsBitmap="true">
 
     <s:states>
-        <s:State name="normal" />
-        <s:State name="selected" />
+        <s:State name="normal"/>
+        <s:State name="selected"/>
     </s:states>
 
     <s:Rect width="100%" height="100%" includeIn="selected">
         <s:stroke>
-            <s:SolidColorStroke color="0xffffff" alpha="0.2" />
+            <s:SolidColorStroke color="0xffffff" alpha="0.2"/>
         </s:stroke>
         <s:fill>
-            <s:SolidColor color="0xffffff" alpha="0.1" />
+            <s:SolidColor color="0xffffff" alpha="0.1"/>
         </s:fill>
     </s:Rect>
 
-    <s:HGroup left="5" right="5" bottom="3" top="3" verticalAlign="baseline">
-        <s:Label id="timeLabel" color="white" maxDisplayedLines="1" width="75" />
-        <s:Label id="keyLabel" width="50" maxDisplayedLines="1" fontWeight="bold" textAlign="right" />
+    <s:HGroup left="5" right="5" bottom="2" top="2" verticalAlign="baseline" cacheAsBitmap="true">
+        <s:Label id="timeLabel" color="white" maxDisplayedLines="1" width="75" cacheAsBitmap="true"/>
+        <s:Label id="keyLabel" width="50" maxDisplayedLines="1" fontWeight="bold" textAlign="right" cacheAsBitmap="true"/>
 
-        <s:Label id="msgLabel" width="100%" color="white" maxDisplayedLines="1" fontFamily="consolas" fontSize="13" />
-        <s:Label id="categoryLabel" color="white" maxDisplayedLines="1" alpha="0.5" textAlign="right" />
+        <s:Label id="msgLabel" width="100%" color="white" maxDisplayedLines="1" fontFamily="consolas" fontSize="13" cacheAsBitmap="true"/>
+        <s:Label id="categoryLabel" color="white" maxDisplayedLines="1" alpha="0.5" textAlign="right" cacheAsBitmap="true"/>
     </s:HGroup>
 
 
@@ -31,8 +31,8 @@
         [Bindable(event="__NoChangeEvent__")]
         public static const KEY_COLOR:Object = { };
         {
-            KEY_COLOR["RESULT"] = 0x40E840;
-            KEY_COLOR["CALL"] = 0xEEEC57;
+            KEY_COLOR["RESULT"] = 0X5AC34D;
+            KEY_COLOR["CALL"] = 0xCFCD4D;
             KEY_COLOR["ERROR"] = 0xFF463D;
             KEY_COLOR["WARN"] = 0xDC8024;
         }

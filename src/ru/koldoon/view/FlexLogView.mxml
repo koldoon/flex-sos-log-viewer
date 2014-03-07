@@ -1,0 +1,366 @@
+<?xml version="1.0"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                    xmlns:model="ru.koldoon.model.*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:cs="ru.koldoon.view.components.*" cacheAsBitmap="true">
+    <s:layout>
+        <s:VerticalLayout/>
+    </s:layout>
+
+    <fx:Declarations>
+        <model:LoggerSocketServer id="loggerSocketServer"
+                                  messageRecieved="loggerSocketServer_messageRecievedHandler(event)"
+                                  clientConnected="loggerSocketServer_clientConnectedHandler(event)"/>
+
+        <s:ArrayCollection id="logCollection" collectionChange="logCollection_collectionChangeHandler(event)"/>
+        <s:ArrayCollection id="currentlyExecutingCollection"/>
+        <s:ArrayCollection id="applicationContextCollection"/>
+
+        <fx:uint id="callsNumber"/>
+        <fx:uint id="resultsNumber"/>
+        <fx:uint id="errorsNumber"/>
+    </fx:Declarations>
+
+
+    <s:BorderContainer width="100%" height="100%" cornerRadius="2"
+                       backgroundColor="0x3d5164" borderColor="0x3d5164"
+                       backgroundAlpha="0.1" borderAlpha="0.2">
+
+        <mx:VDividedBox width="100%" left="5" right="5" bottom="5" top="5" dividerAlpha="0.5">
+            <s:BorderContainer width="100%" height="70%" backgroundAlpha="0" borderAlpha="0" minWidth="100">
+                <s:layout>
+                    <s:VerticalLayout/>
+                </s:layout>
+
+                <s:List id="messagesList" width="100%" height="100%"
+                        contentBackgroundAlpha="0" borderVisible="false" useVirtualLayout="true"
+                        borderAlpha="0" contentBackgroundColor="0" itemRenderer="ru.koldoon.view.renderers.LogItemRenderer"
+                        skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin" horizontalScrollPolicy="off"
+                        dataProvider="{logCollection}"/>
+
+                <s:BorderContainer id="filterContainer" width="100%" cornerRadius="2"
+                                   backgroundColor="0x0" borderColor="0x0"
+                                   backgroundAlpha="0.2" borderAlpha="0.3">
+                    <s:layout>
+                        <s:HorizontalLayout paddingBottom="5" paddingTop="5" paddingLeft="10" paddingRight="10"
+                                            verticalAlign="baseline"/>
+                    </s:layout>
+
+                    <s:Label text="Filter:"/>
+                    <s:TextInput id="filterInput" color="white" widthInChars="40" fontFamily="consolas" fontSize="13"
+                                 borderAlpha="0.11" borderColor="white" contentBackgroundColor="white" contentBackgroundAlpha="0.07"
+                                 enter="goButton_clickHandler(event)"/>
+
+                    <cs:LinkButton text="[ Go ]" paddingLeft="10" click="goButton_clickHandler(event)"/>
+
+                    <s:Spacer width="100%"/>
+                    <s:HGroup gap="10">
+                        <s:Label text="Items count: {logCollection.length}" color="0xa5b8df"/>
+
+                        <s:Label text="Calls: {callsNumber}" color="0xdccb6f" alpha="{ callsNumber > 0 ? 1 : 0.4 }"
+                                 toolTip="Number of server calls executed"/>
+
+                        <s:Label text="Results: {resultsNumber}" color="0x6bd56b" alpha="{ resultsNumber > 0 ? 1 : 0.4 }"
+                                 toolTip="Number of command results processed"/>
+
+                        <s:Label text="Errors: {errorsNumber}" color="0xff6859" alpha="{ errorsNumber > 0 ? 1 : 0.4 }"
+                                 toolTip="Number of Errors captured"/>
+
+                        <cs:LinkButton text="clear log"
+                                       toolTip="Clear current log history. (Application context remains)"
+                                       click="clearLog_clickHandler(event)"/>
+                    </s:HGroup>
+                </s:BorderContainer>
+            </s:BorderContainer>
+            <mx:HDividedBox id="bottomContainer" width="100%" height="30%" dividerAlpha="0.5" minHeight="80">
+                <!-- Details -->
+                <s:BorderContainer id="detailsContainer" width="70%" height="100%" minWidth="200" cornerRadius="2"
+                                   backgroundColor="0x0" borderColor="0x0"
+                                   backgroundAlpha="0.2" borderAlpha="0.3">
+                    <s:layout>
+                        <s:VerticalLayout paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5"/>
+                    </s:layout>
+                    <s:Group width="100%">
+                        <s:Label text="Details" horizontalCenter="0"/>
+                        <s:HGroup right="5" gap="15">
+                            <cs:ToggleLinkButton text="word wrap"
+                                                 toolTip="Wrap long lines in Details"
+                                                 toggleProperty="@{ Settings.getInstance().wordWrapEnabled }"/>
+
+                            <cs:LinkButton text="copy to clipboard"
+                                           toolTip="Copy whole Details content to the clipboard"
+                                           click="copyToClipboard_clickHandler(event)"/>
+                        </s:HGroup>
+                    </s:Group>
+                    <s:TextArea id="messageDetails" width="100%" height="100%" cachePolicy="on" editable="false"
+                                paddingLeft="0" paddingRight="0" color="white" fontSize="12" fontFamily="consolas"
+                                contentBackgroundAlpha="0" borderVisible="false" focusThickness="0"
+                                horizontalScrollPolicy="auto" verticalScrollPolicy="auto"
+                                lineBreak="{ Settings.getInstance().wordWrapEnabled ? 'toFit' : 'explicit' }"
+                                text="{ LogItem(messagesList.selectedItem).message }"/>
+                </s:BorderContainer>
+
+                <!-- Currently executing & Application context -->
+                <s:BorderContainer id="contextContainer" width="350" minWidth="280" height="100%" cornerRadius="2"
+                                   backgroundColor="0x0" borderColor="0x0"
+                                   backgroundAlpha="0.2" borderAlpha="0.3">
+                    <s:layout>
+                        <s:VerticalLayout paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5"/>
+                    </s:layout>
+
+                    <s:HGroup width="100%" horizontalAlign="center">
+                        <cs:ToggleLinkButton text="Currently executing"
+                                             toolTip="List of currently executing commands"
+                                             toggleProperty="{ objectsViewStack.selectedChild == executingContent }"
+                                             click="{ objectsViewStack.selectedChild = executingContent }"/>
+
+                        <s:Label text="|" alpha="0.6"/>
+
+                        <cs:ToggleLinkButton text="Application context"
+                                             toolTip="List of instantiated objects within Parsley context"
+                                             toggleProperty="{ objectsViewStack.selectedChild == contextContent }"
+                                             click="{ objectsViewStack.selectedChild = contextContent }"/>
+                    </s:HGroup>
+
+                    <mx:ViewStack id="objectsViewStack" width="100%" height="100%">
+                        <s:NavigatorContent id="executingContent" width="100%" height="100%">
+                            <s:List id="currentlyExecutingList" width="100%" height="100%"
+                                    skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin" horizontalScrollPolicy="off"
+                                    itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"
+                                    dataProvider="{currentlyExecutingCollection}"/>
+                        </s:NavigatorContent>
+
+                        <s:NavigatorContent id="contextContent" width="100%" height="100%">
+                            <s:layout>
+                                <s:VerticalLayout gap="5" horizontalAlign="right"/>
+                            </s:layout>
+                            <s:List id="applicationContextList" width="100%" height="100%"
+                                    skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin" horizontalScrollPolicy="off"
+                                    itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"
+                                    dataProvider="{applicationContextCollection}"/>
+                            <cs:LinkButton text="clear" alpha="0.5"
+                                           toolTip="Clear current context info data in case of watching further differences only"
+                                           click="applicationContextClear_clickHandler(event)"/>
+                        </s:NavigatorContent>
+                    </mx:ViewStack>
+                </s:BorderContainer>
+            </mx:HDividedBox>
+        </mx:VDividedBox>
+    </s:BorderContainer>
+
+
+    <fx:Script><![CDATA[
+        import com.greensock.TweenMax;
+        import com.greensock.easing.Cubic;
+
+        import mx.events.CollectionEvent;
+        import mx.events.FlexEvent;
+
+        import ru.koldoon.model.LogEvent;
+        import ru.koldoon.model.LogItem;
+        import ru.koldoon.model.Settings;
+
+        private var currentlyExecutingMap:Object = { };
+        private var applicationContextMap:Object = { };
+        private var lastErrorItemIndex:int = -1;
+
+        private function loggerSocketServer_messageRecievedHandler(event:LogEvent):void
+        {
+            processLogMessage(event.logItem);
+        }
+
+        private function processLogMessage(msg:LogItem):void
+        {
+            if (msg.key != "EXECUTE" && msg.key != "DESTROY"
+                    && (!msg.category || msg.category.indexOf("org.spicefactory.parsley.core.lifecycle") == -1))
+            {
+                logCollection.addItem(msg);
+            }
+            else
+            {
+                var objName:String;
+                if (msg.lineMessage.indexOf("Configure managed object with [ObjectDefinition(type") != -1)
+                {
+                    objName = getObjectName(msg.lineMessage);
+                    if (applicationContextMap[objName])
+                    {
+                        applicationContextMap[objName]++;
+                    }
+                    else
+                    {
+                        applicationContextMap[objName] = 1;
+                    }
+                }
+                else if (msg.lineMessage.indexOf("Destroy managed object with [ObjectDefinition(type") != -1)
+                {
+                    objName = getObjectName(msg.lineMessage);
+                    if (applicationContextMap[objName])
+                    {
+                        applicationContextMap[objName]--;
+                    }
+                    else
+                    {
+                        applicationContextMap[objName] = 0;
+                    }
+                }
+                updateContextCollection();
+            }
+
+            if (msg.key == "CALL")
+            {
+                callsNumber++;
+            }
+            else if (msg.key == "RESULT")
+            {
+                resultsNumber++;
+            }
+            else if (msg.key == "ERROR")
+            {
+                lastErrorItemIndex = logCollection.length - 1;
+                stage.nativeWindow.orderToFront();
+                stage.nativeWindow.notifyUser("New error captured.");
+                errorsNumber++;
+            }
+            else if (msg.key == "EXECUTE")
+            {
+                currentlyExecutingMap[msg.message] = true;
+                updateExecutingCollection();
+            }
+            else if (msg.key == "DESTROY")
+            {
+                currentlyExecutingMap[msg.message] = false;
+                updateExecutingCollection();
+            }
+        }
+
+        private static function getObjectName(msg:String):String
+        {
+            var className:String = msg.split("[ObjectDefinition(type = ")[1].split(",")[0];
+            return className.split("::").pop();
+        }
+
+        private function updateExecutingCollection():void
+        {
+            var executingList:Array = [];
+            for (var commandName:String in currentlyExecutingMap)
+            {
+                if (currentlyExecutingMap[commandName])
+                {
+                    executingList.push(commandName);
+                }
+            }
+
+            currentlyExecutingCollection.source = executingList;
+        }
+
+        private function updateContextCollection():void
+        {
+            var contextList:Array = [];
+            for (var objectName:String in applicationContextMap)
+            {
+                if (applicationContextMap[objectName])
+                {
+                    contextList.push(objectName);
+                }
+            }
+
+            contextList.sort();
+            applicationContextCollection.source = contextList;
+        }
+
+        private function logCollection_collectionChangeHandler(event:CollectionEvent = null):void
+        {
+            if (!Settings.getInstance().autoScrollEnabled || !messagesList || !messagesList.scroller || !messagesList.scroller.verticalScrollBar)
+                return;
+
+            if (lastErrorItemIndex >= 0)
+            {
+                messagesList.addEventListener(FlexEvent.UPDATE_COMPLETE, scrollToError);
+            }
+            else
+            {
+                messagesList.addEventListener(FlexEvent.UPDATE_COMPLETE, scrollDown);
+            }
+        }
+
+
+        private function scrollToError(event:Event = null):void
+        {
+            messagesList.removeEventListener(FlexEvent.UPDATE_COMPLETE, scrollToError);
+
+            messagesList.selectedIndex = lastErrorItemIndex;
+            messagesList.ensureIndexIsVisible(lastErrorItemIndex);
+            lastErrorItemIndex = -1;
+        }
+
+        private function scrollDown(event:Event = null):void
+        {
+            messagesList.removeEventListener(FlexEvent.UPDATE_COMPLETE, scrollDown);
+
+            if (Settings.getInstance().smoothScrollingEnabled)
+            {
+                TweenMax.to(messagesList.scroller.verticalScrollBar, 0.4,
+                        {
+                            delay: 0.2,
+                            value: messagesList.scroller.verticalScrollBar.maximum,
+                            ease:  Cubic.easeOut
+                        });
+            }
+            else
+            {
+                messagesList.scroller.verticalScrollBar.value = messagesList.scroller.verticalScrollBar.maximum;
+            }
+        }
+
+        private function loggerSocketServer_clientConnectedHandler(event:Event):void
+        {
+            applicationContextMap = { };
+            currentlyExecutingMap = { };
+            updateContextCollection();
+            updateExecutingCollection();
+            logCollection.removeAll();
+            callsNumber = 0;
+            resultsNumber = 0;
+            errorsNumber = 0;
+        }
+
+        private function copyToClipboard_clickHandler(event:MouseEvent):void
+        {
+            try
+            {
+                System.setClipboard(messageDetails.text);
+            }
+            catch (err:Error)
+            { }
+        }
+
+        private function goButton_clickHandler(event:Event):void
+        {
+            if (filterInput.text && filterInput.text.length > 0)
+            {
+                var filterText:String = filterInput.text.toLowerCase();
+
+                logCollection.filterFunction =
+                        function (item:LogItem):Boolean
+                        {
+                            return item.lineMessage && item.lineMessage.toLowerCase().indexOf(filterText) != -1;
+                        }
+            }
+            else
+            {
+                logCollection.filterFunction = null;
+            }
+
+            logCollection.refresh();
+        }
+
+        private function applicationContextClear_clickHandler(event:MouseEvent):void
+        {
+            applicationContextMap = { };
+            updateContextCollection();
+        }
+
+        private function clearLog_clickHandler(event:MouseEvent):void
+        {
+            logCollection.removeAll();
+        }
+        ]]></fx:Script>
+</s:NavigatorContent>
