@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-                    xmlns:model="ru.koldoon.model.*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:cs="ru.koldoon.view.components.*" cacheAsBitmap="true">
+                    xmlns:model="ru.koldoon.model.*" xmlns:mx="library://ns.adobe.com/flex/mx"
+                    xmlns:cs="ru.koldoon.view.components.*" cacheAsBitmap="true">
     <s:layout>
         <s:VerticalLayout/>
     </s:layout>
@@ -45,11 +46,15 @@
                     </s:layout>
 
                     <s:Label text="Filter:"/>
-                    <s:TextInput id="filterInput" color="white" widthInChars="40" fontFamily="consolas" fontSize="13"
+                    <s:TextInput id="filterInput" color="white" width="350" fontFamily="consolas" fontSize="13"
                                  borderAlpha="0.11" borderColor="white" contentBackgroundColor="white" contentBackgroundAlpha="0.07"
                                  enter="goButton_clickHandler(event)"/>
 
-                    <cs:LinkButton text="[ Go ]" paddingLeft="10" click="goButton_clickHandler(event)"/>
+                    <cs:LinkButton text="[ Go ]" paddingLeft="5" click="goButton_clickHandler(event)"/>
+                    <cs:ToggleLinkButton text="full text filter" paddingLeft="10"
+                                         toolTip="Use full log message text when filtering (slowly)"
+                                         toggleProperty="@{ Settings.getInstance().fulltextFilterEnabled }"
+                                         change="fulltextLinkButton_changeHandler(event)"/>
 
                     <s:Spacer width="100%"/>
                     <s:HGroup gap="10">
@@ -248,6 +253,7 @@
                 }
             }
 
+            executingList.sort();
             currentlyExecutingCollection.source = executingList;
         }
 
@@ -332,8 +338,9 @@
             { }
         }
 
-        private function goButton_clickHandler(event:Event):void
+        private function goButton_clickHandler(event:Event = null):void
         {
+            var fulltextFilterEnabled:Boolean = Settings.getInstance().fulltextFilterEnabled;
             if (filterInput.text && filterInput.text.length > 0)
             {
                 var filterText:String = filterInput.text.toLowerCase();
@@ -341,7 +348,14 @@
                 logCollection.filterFunction =
                         function (item:LogItem):Boolean
                         {
-                            return item.lineMessage && item.lineMessage.toLowerCase().indexOf(filterText) != -1;
+                            if (fulltextFilterEnabled)
+                            {
+                                return item.message && item.message.toLowerCase().indexOf(filterText) != -1;
+                            }
+                            else
+                            {
+                                return item.lineMessage && item.lineMessage.toLowerCase().indexOf(filterText) != -1;
+                            }
                         }
             }
             else
@@ -361,6 +375,11 @@
         private function clearLog_clickHandler(event:MouseEvent):void
         {
             logCollection.removeAll();
+        }
+
+        private function fulltextLinkButton_changeHandler(event:Event):void
+        {
+            goButton_clickHandler();
         }
         ]]></fx:Script>
 </s:NavigatorContent>

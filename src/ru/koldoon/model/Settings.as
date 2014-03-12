@@ -91,6 +91,20 @@ package ru.koldoon.model
 
 
         [Bindable(event="dataChange")]
+        public function get fulltextFilterEnabled():Boolean
+        {
+            return settingsData.fulltextFilterEnabled;
+        }
+
+        public function set fulltextFilterEnabled(value:Boolean):void
+        {
+            settingsData.fulltextFilterEnabled = value;
+            dispatchEvent(new Event("dataChange"));
+            writeSettings();
+        }
+
+
+        [Bindable(event="dataChange")]
         public function get windowProperies():Rectangle
         {
             return new Rectangle(
