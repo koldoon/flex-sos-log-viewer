@@ -35,7 +35,7 @@
     <!--<description></description>-->
 
     <!-- Copyright information. Optional -->
-    <!--<copyright></copyright>-->
+    <copyright>Vadim Usoltsev, 2014</copyright>
 
     <!-- Publisher ID. Used if you're updating an application created prior to 1.5.3 -->
     <!--<publisherID></publisherID>-->
@@ -51,7 +51,7 @@
         <content>SWF file name is set automatically at compile time</content>
 
         <!-- The title of the main window. Optional. -->
-        <!--<title></title>-->
+        <title>Flex Log Viewer</title>
 
         <!-- The type of system chrome to use (either "standard" or "none"). Optional. Default standard. -->
         <systemChrome>none</systemChrome>
