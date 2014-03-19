@@ -129,7 +129,7 @@
                         <s:NavigatorContent id="executingContent" width="100%" height="100%">
                             <s:List id="currentlyExecutingList" width="100%" height="100%"
                                     skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin" horizontalScrollPolicy="off"
-                                    itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"
+                                    itemRenderer="ru.koldoon.view.renderers.ContextItemRenderer"
                                     dataProvider="{currentlyExecutingCollection}"/>
                         </s:NavigatorContent>
 
@@ -139,7 +139,7 @@
                             </s:layout>
                             <s:List id="applicationContextList" width="100%" height="100%"
                                     skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin" horizontalScrollPolicy="off"
-                                    itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"
+                                    itemRenderer="ru.koldoon.view.renderers.ContextItemRenderer"
                                     dataProvider="{applicationContextCollection}"/>
                             <cs:LinkButton text="clear" alpha="0.5"
                                            toolTip="Clear current context info data in case of watching further differences only"
@@ -159,6 +159,7 @@
         import mx.events.CollectionEvent;
         import mx.events.FlexEvent;
 
+        import ru.koldoon.model.ContextItem;
         import ru.koldoon.model.LogEvent;
         import ru.koldoon.model.LogItem;
         import ru.koldoon.model.Settings;
@@ -181,6 +182,7 @@
             }
             else
             {
+                // process Context Object lifecycle
                 var objName:String;
                 if (msg.lineMessage.indexOf("Configure managed object with [ObjectDefinition(type") != -1)
                 {
@@ -226,12 +228,26 @@
             }
             else if (msg.key == "EXECUTE")
             {
-                currentlyExecutingMap[msg.message] = true;
+                if (currentlyExecutingMap[msg.message])
+                {
+                    currentlyExecutingMap[msg.message]++;
+                }
+                else
+                {
+                    currentlyExecutingMap[msg.message] = 1;
+                }
                 updateExecutingCollection();
             }
             else if (msg.key == "DESTROY")
             {
-                currentlyExecutingMap[msg.message] = false;
+                if (currentlyExecutingMap[msg.message])
+                {
+                    currentlyExecutingMap[msg.message]--;
+                }
+                else
+                {
+                    currentlyExecutingMap[msg.message] = 0;
+                }
                 updateExecutingCollection();
             }
         }
@@ -249,11 +265,11 @@
             {
                 if (currentlyExecutingMap[commandName])
                 {
-                    executingList.push(commandName);
+                    executingList.push(new ContextItem(commandName, currentlyExecutingMap[commandName]));
                 }
             }
 
-            executingList.sort();
+            executingList.sortOn("label");
             currentlyExecutingCollection.source = executingList;
         }
 
@@ -262,13 +278,13 @@
             var contextList:Array = [];
             for (var objectName:String in applicationContextMap)
             {
-                if (applicationContextMap[objectName])
+                if (applicationContextMap[objectName] > 0)
                 {
-                    contextList.push(objectName);
+                    contextList.push(new ContextItem(objectName, applicationContextMap[objectName]));
                 }
             }
 
-            contextList.sort();
+            contextList.sortOn("label");
             applicationContextCollection.source = contextList;
         }
 
