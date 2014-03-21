@@ -2,13 +2,13 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
                 autoDrawBackground="false" width="100%" cacheAsBitmap="true">
 
-    <s:Label id="textDisplay" left="5" right="5" bottom="2" top="2"
+    <s:Label id="textDisplay" left="5" right="{countDisplay.width + 6}" bottom="2" top="2"
              color="white" maxDisplayedLines="1" fontFamily="consolas" fontSize="12"/>
 
+    <s:Label id="countDisplay" right="5" bottom="2" top="2"
+             color="0x6bd56b" maxDisplayedLines="1" fontFamily="consolas" fontSize="12"/>
 
     <fx:Script><![CDATA[
-        import mx.utils.StringUtil;
-
         import ru.koldoon.model.ContextItem;
 
         override public function set data(value:Object):void
@@ -17,13 +17,17 @@
 
             if (data as ContextItem)
             {
+                textDisplay.text = ContextItem(data).label;
+
                 if (ContextItem(data).count > 1)
                 {
-                    textDisplay.text = StringUtil.substitute("{0} ({1})", ContextItem(data).label, ContextItem(data).count);
+                    countDisplay.visible = true;
+                    countDisplay.text = "(" + ContextItem(data).count + ")";
                 }
                 else
                 {
-                    textDisplay.text = ContextItem(data).label;
+                    countDisplay.visible = false;
+                    countDisplay.text = "";
                 }
             }
             else
