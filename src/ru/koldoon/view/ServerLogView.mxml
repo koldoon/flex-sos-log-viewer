@@ -1,36 +1,116 @@
 <?xml version="1.0"?>
-<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+<s:NavigatorContent
+    xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:c="ru.koldoon.view.components.*">
+
     <s:layout>
         <s:VerticalLayout/>
     </s:layout>
 
-    <s:Button label="Browse" id="browseButton" click="browseButton_clickHandler(event)"/>
+    <mx:HDividedBox width="100%" height="100%" paddingRight="5" paddingLeft="5" paddingTop="5" paddingBottom="5">
+        <s:BorderContainer
+            width="350" minWidth="280" height="100%" cornerRadius="2"
+            backgroundColor="0x0" borderColor="0x0"
+            backgroundAlpha="0.2" borderAlpha="0.3">
 
-    <s:List id="logList" width="100%" height="100%" skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin"
-            itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"/>
-    <!--<s:TextArea id="logTextArea" width="100%" height="100%" cachePolicy="on" editable="false"-->
-    <!--paddingLeft="0" paddingRight="0" color="white" fontSize="12" fontFamily="consolas"-->
-    <!--contentBackgroundAlpha="0" borderVisible="false" focusThickness="0"-->
-    <!--horizontalScrollPolicy="auto" verticalScrollPolicy="auto"-->
-    <!--lineBreak="{ Settings.getInstance().wordWrapEnabled ? 'toFit' : 'explicit' }"/>-->
+            <s:layout>
+                <s:VerticalLayout paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5"
+                                  horizontalAlign="right"/>
+            </s:layout>
 
-    <fx:Script><![CDATA[
+            <s:HGroup gap="10" paddingRight="5">
+                <c:LinkButton
+                    text="- remove" enabled="{textLogItemsList.selectedItem}" id="removeButton"
+                    click="removeButton_clickHandler(event)"/>
+
+                <c:LinkButton
+                    text="+ add" click="browseButton_clickHandler(event)"/>
+            </s:HGroup>
+
+            <s:List
+                id="textLogItemsList" width="100%" height="100%"
+                skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin" horizontalScrollPolicy="off"
+                itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"
+                dataProvider="{textLogCollection}"
+                change="textLogItemsList_changeHandler(event)"/>
+        </s:BorderContainer>
+
+        <s:Group width="100%" height="100%">
+            <s:List
+                id="logTextList" top="5" bottom="5" left="0" right="0" useVirtualLayout="true" borderVisible="false"
+                allowMultipleSelection="true" contentBackgroundAlpha="0" horizontalScrollPolicy="off"
+                skinClass="ru.koldoon.resources.skins.list.ListTransparentSkin"
+                dataProvider="{ TextLogItem(textLogItemsList.selectedItem).textLines }"
+                itemRenderer="ru.koldoon.view.renderers.SimpleStringRenderer"/>
+        </s:Group>
+    </mx:HDividedBox>
+
+    <fx:Script>
+        <![CDATA[
+        import com.greensock.TweenMax;
+        import com.greensock.easing.Cubic;
+
         import mx.collections.ArrayCollection;
+        import mx.events.FlexEvent;
 
-        private var file:File = new File();
+        import ru.koldoon.model.Settings;
+        import ru.koldoon.model.TextLogItem;
 
-        private function browseButton_clickHandler(event:MouseEvent):void
-        {
+        import spark.events.IndexChangeEvent;
 
-            file.browseForOpen("Open log");
-            file.addEventListener(Event.SELECT, fileSelected);
+        [Bindable]
+        private var textLogCollection:ArrayCollection = new ArrayCollection();
+
+
+        private function browseButton_clickHandler(event:MouseEvent):void {
+            var file:File = new File();
+            file.browseForOpenMultiple("Open log(s)...");
+            file.addEventListener(FileListEvent.SELECT_MULTIPLE, fileSelected, false, 0, true);
         }
 
-        private function fileSelected(event:Event):void
-        {
-            var fs:FileStream = new FileStream();
-            fs.open(file, FileMode.READ);
-            logList.dataProvider = new ArrayCollection(fs.readUTFBytes(fs.bytesAvailable).split("\n"));
+
+        private function fileSelected(event:FileListEvent):void {
+            for each (var file:File in event.files) {
+                var logItem:TextLogItem = new TextLogItem(file);
+                textLogCollection.addItem(logItem);
+            }
         }
-        ]]></fx:Script>
+
+
+        private function removeButton_clickHandler(event:MouseEvent):void {
+            textLogCollection.removeItemAt(textLogItemsList.selectedIndex);
+        }
+
+
+        private function scrollDown(event:Event = null):void {
+            if (!Settings.getInstance().autoScrollEnabled || !logTextList || !logTextList.scroller || !logTextList.scroller.verticalScrollBar) {
+                return;
+            }
+
+            logTextList.removeEventListener(FlexEvent.UPDATE_COMPLETE, scrollDown);
+
+            if (Settings.getInstance().smoothScrollingEnabled) {
+                TweenMax.to(logTextList.scroller.verticalScrollBar, 0.4,
+                    {
+                        delay: 0.2,
+                        value: logTextList.scroller.verticalScrollBar.maximum,
+                        ease:  Cubic.easeOut
+                    });
+            }
+            else {
+                logTextList.scroller.verticalScrollBar.value = logTextList.scroller.verticalScrollBar.maximum;
+            }
+
+            logTextList.alpha = 1;
+        }
+
+
+        private function textLogItemsList_changeHandler(event:IndexChangeEvent):void {
+            TextLogItem(textLogItemsList.selectedItem).refresh();
+
+            logTextList.addEventListener(FlexEvent.UPDATE_COMPLETE, scrollDown);
+            logTextList.alpha = 0;
+        }
+        ]]>
+    </fx:Script>
 </s:NavigatorContent>

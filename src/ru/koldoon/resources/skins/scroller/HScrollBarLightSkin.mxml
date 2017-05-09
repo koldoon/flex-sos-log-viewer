@@ -9,16 +9,16 @@
 
 
     <s:states>
-        <s:State name="normal" />
-        <s:State name="disabled" />
-        <s:State name="inactive" />
+        <s:State name="normal"/>
+        <s:State name="disabled"/>
+        <s:State name="inactive"/>
     </s:states>
 
     <s:Button id="track" left="2" right="2" width="54"
               focusEnabled="false" tabEnabled="false"
-              skinClass="ru.koldoon.resources.skins.scroller.ScrollBarLightTrackSkin" />
+              skinClass="ru.koldoon.resources.skins.scroller.ScrollBarLightTrackSkin"/>
 
     <s:Button id="thumb" buttonMode="true"
               focusEnabled="false" visible.inactive="false" tabEnabled="false"
-              skinClass="ru.koldoon.resources.skins.scroller.HScrollBarLightThumbSkin" />
+              skinClass="ru.koldoon.resources.skins.scroller.HScrollBarLightThumbSkin"/>
 </s:SparkSkin>

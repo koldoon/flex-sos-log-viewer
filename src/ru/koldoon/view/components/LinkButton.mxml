@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
-<s:Label xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-
-         buttonMode="true"
-         mouseOver="{ glowFilter.alpha = 1; }"
-         mouseOut="{ glowFilter.alpha = 0; }">
+<s:Label
+    xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    alpha="{ enabled ? 1 : 0.4 }"
+    buttonMode="{ enabled }"
+    mouseOver="{ glowFilter.alpha = 1; }"
+    mouseOut="{ glowFilter.alpha = 0; }">
 
     <s:filters>
         <s:DropShadowFilter alpha="1" distance="1" quality="2" blurX="2" blurY="2"/>

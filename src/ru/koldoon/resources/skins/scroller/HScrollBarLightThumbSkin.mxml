@@ -7,16 +7,16 @@
     </fx:Metadata>
 
     <s:states>
-        <s:State name="up" />
-        <s:State name="over" />
-        <s:State name="down" />
-        <s:State name="disabled" />
+        <s:State name="up"/>
+        <s:State name="over"/>
+        <s:State name="down"/>
+        <s:State name="disabled"/>
     </s:states>
 
     <!-- background -->
     <s:Rect left="0" top="0" right="0" bottom="0" minWidth="50" height="12" radiusX="5" radiusY="5">
         <s:fill>
-            <s:SolidColor color="0xFFFFFF" alpha="0.6" />
+            <s:SolidColor color="0xFFFFFF" alpha="0.6"/>
         </s:fill>
     </s:Rect>
 </s:SparkSkin>

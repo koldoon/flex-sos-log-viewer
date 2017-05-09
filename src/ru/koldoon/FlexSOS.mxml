@@ -1,18 +1,43 @@
 <?xml version="1.0"?>
-<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-                       xmlns:view="ru.koldoon.view.*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:cs="ru.koldoon.view.components.*"
-                       backgroundAlpha="0" showStatusBar="false" frameRate="60" cacheAsBitmap="true"
-                       width="1400" height="930" minWidth="1300" minHeight="670"
-
-                       addedToStage="addedToStageHandler(event)">
+<s:WindowedApplication
+    xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    xmlns:view="ru.koldoon.view.*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:cs="ru.koldoon.view.components.*"
+    backgroundAlpha="0" showStatusBar="false" frameRate="120" cacheAsBitmap="true"
+    width="1000" height="800" minWidth="1000" minHeight="670"
+    addedToStage="addedToStageHandler(event)">
 
 
     <fx:Style source="/ru/koldoon/resources/css/application.css"/>
 
+    <s:Group
+        top="20" right="20" bottom="20" left="20" mask="{solidColorMask}"
+        visible="{ !Settings.getInstance().transparencyEnabled }">
+
+        <s:Rect width="100%" height="100%">
+            <s:fill>
+                <s:SolidColor color="#293134"/>
+            </s:fill>
+        </s:Rect>
+
+        <s:showEffect>
+            <s:Fade alphaFrom="0" alphaTo="1" duration="300"/>
+        </s:showEffect>
+        <s:hideEffect>
+            <s:Fade alphaFrom="1" alphaTo="0" duration="300"/>
+        </s:hideEffect>
+        <s:filters>
+            <s:DropShadowFilter
+                distance="0" blurX="18" blurY="18" quality="3"
+                alpha="{ getBackgroundClass(Settings.getInstance().backgroundType) ? 0 : 1 }"/>
+        </s:filters>
+    </s:Group>
+
     <!-- Background -->
-    <s:Image source="{getBackgroundClass(Settings.getInstance().backgroundType)}" scaleMode="stretch" smooth="true"
-             visible="{!Settings.getInstance().transparencyEnabled}"
-             top="20" right="20" bottom="20" left="20" mask="{imageMask}">
+    <s:Image
+        source="{getBackgroundClass(Settings.getInstance().backgroundType)}" scaleMode="stretch" smooth="true"
+        visible="{ and(!Settings.getInstance().transparencyEnabled, getBackgroundClass(Settings.getInstance().backgroundType)) }"
+        top="20" right="20" bottom="20" left="20" mask="{imageMask}">
+
         <s:showEffect>
             <s:Fade alphaFrom="0" alphaTo="1" duration="300"/>
         </s:showEffect>
@@ -23,7 +48,16 @@
             <s:DropShadowFilter distance="0" blurX="18" blurY="18" quality="3"/>
         </s:filters>
     </s:Image>
+
     <s:Group id="imageMask" top="20" right="20" bottom="20" left="20">
+        <s:Rect width="100%" height="100%" radiusY="4" radiusX="4">
+            <s:fill>
+                <s:SolidColor color="0xffffff"/>
+            </s:fill>
+        </s:Rect>
+    </s:Group>
+
+    <s:Group id="solidColorMask" top="20" right="20" bottom="20" left="20">
         <s:Rect width="100%" height="100%" radiusY="4" radiusX="4">
             <s:fill>
                 <s:SolidColor color="0xffffff"/>
@@ -33,9 +67,11 @@
 
     <s:VGroup top="22" right="22" bottom="22" left="22">
         <!-- Header -->
-        <s:BorderContainer id="headerContainer" cacheAsBitmap="true"
-                           borderColor="0x878787" backgroundColor="0x878787" backgroundAlpha="0.15" borderAlpha="0.25"
-                           mouseDown="{ stage.nativeWindow.startMove(); }" width="100%" cornerRadius="2">
+        <s:BorderContainer
+            id="headerContainer" cacheAsBitmap="true"
+            borderColor="0x878787" backgroundColor="0x878787" backgroundAlpha="0.15" borderAlpha="0.25"
+            mouseDown="{ stage.nativeWindow.startMove(); }" width="100%" cornerRadius="2">
+
             <s:layout>
                 <s:HorizontalLayout paddingLeft="5" paddingRight="5" verticalAlign="middle" gap="15"/>
             </s:layout>
@@ -48,59 +84,109 @@
                 </s:Rect>
                 <s:BitmapImage source="{APP_ICON}" verticalCenter="0" horizontalCenter="0"/>
             </s:Group>
+
             <s:Label text="Flex Log Viewer" toolTip="Flex Log Viewer by Vadim Usoltsev, 2014"/>
 
             <s:Spacer width="60"/>
-            <cs:ToggleLinkButton text="autoscroll"
-                                 toolTip="Toggle autoscroll to the end when new item is recieved"
-                                 toggleProperty="@{ Settings.getInstance().autoScrollEnabled }"/>
 
-            <cs:ToggleLinkButton text="transparency"
-                                 toolTip="Remove background image and make application transparent"
-                                 toggleProperty="@{ Settings.getInstance().transparencyEnabled }"/>
-
-            <cs:ToggleLinkButton text="smooth scrolling"
-                                 toolTip="Smoothing when autoscrolling the list"
-                                 toggleProperty="@{ Settings.getInstance().smoothScrollingEnabled }"/>
-
-            <s:Spacer width="60"/>
-            <s:HGroup>
-                <cs:ToggleLinkButton text="black"
-                                     toolTip="Set black background"
-                                     toggleProperty="{ Settings.getInstance().backgroundType == Settings.BACKGROUND_TYPE_BLACK }"
-                                     click="{ Settings.getInstance().backgroundType = Settings.BACKGROUND_TYPE_BLACK; }"/>
+            <s:HGroup width="100%" horizontalAlign="center">
+                <cs:ToggleLinkButton
+                    text="flex application"
+                    toolTip="Flex application log view"
+                    optionMode="true"
+                    toggleProperty="{ loggersViewStack.selectedChild == flexLogView }"
+                    click="{ loggersViewStack.selectedChild = flexLogView }"/>
 
                 <s:Label text="|" alpha="0.6"/>
 
-                <cs:ToggleLinkButton text="blue"
-                                     toolTip="Set blue background"
-                                     toggleProperty="{ Settings.getInstance().backgroundType == Settings.BACKGROUND_TYPE_BLUE }"
-                                     click="{ Settings.getInstance().backgroundType = Settings.BACKGROUND_TYPE_BLUE; }"/>
+                <cs:ToggleLinkButton
+                    text="service (beta)"
+                    toolTip="List of instantiated objects within Parsley context"
+                    optionMode="true"
+                    toggleProperty="{ loggersViewStack.selectedChild == serverLogView }"
+                    click="{ loggersViewStack.selectedChild = serverLogView }"/>
+            </s:HGroup>
+
+            <s:Spacer width="60"/>
+
+            <cs:ToggleLinkButton
+                text="autoscroll"
+                toolTip="Toggle autoscroll to the end when new item is recieved"
+                toggleProperty="@{ Settings.getInstance().autoScrollEnabled }"/>
+
+            <cs:ToggleLinkButton
+                text="transparency"
+                toolTip="Remove background image and make application transparent"
+                toggleProperty="@{ Settings.getInstance().transparencyEnabled }"/>
+
+            <cs:ToggleLinkButton
+                text="smooth scrolling"
+                toolTip="Smoothing when autoscrolling the list"
+                toggleProperty="@{ Settings.getInstance().smoothScrollingEnabled }"/>
+
+            <s:Spacer width="60"/>
+
+            <s:HGroup>
+                <cs:ToggleLinkButton
+                    text="black"
+                    toolTip="Set black background"
+                    toggleProperty="{ Settings.getInstance().backgroundType == Settings.BACKGROUND_TYPE_BLACK }"
+                    click="{ Settings.getInstance().backgroundType = Settings.BACKGROUND_TYPE_BLACK; }"/>
+
+                <s:Label text="|" alpha="0.6"/>
+
+                <cs:ToggleLinkButton
+                    text="blue"
+                    toolTip="Set blue background"
+                    toggleProperty="{ Settings.getInstance().backgroundType == Settings.BACKGROUND_TYPE_BLUE }"
+                    click="{ Settings.getInstance().backgroundType = Settings.BACKGROUND_TYPE_BLUE; }"/>
+
+                <s:Label text="|" alpha="0.6"/>
+
+                <cs:ToggleLinkButton
+                    text="neutral"
+                    toolTip="Set solid gray background"
+                    toggleProperty="{ Settings.getInstance().backgroundType == Settings.BACKGROUND_TYPE_COLOR }"
+                    click="{ Settings.getInstance().backgroundType = Settings.BACKGROUND_TYPE_COLOR; }"/>
             </s:HGroup>
 
             <s:Spacer width="100%"/>
-            <s:Label text="&#x2022;&#x2190;&#x2022;" fontFamily="consolas" fontSize="16" toolTip="Active client connection"
-                     visible="{ flexLogView.loggerSocketServer.activeConnection }"/>
 
-            <s:HGroup gap="4" paddingBottom="1">
-                <cs:LinkButton text="[-]" toolTip="Minimize the window"
-                               fontFamily="consolas" fontSize="14" click="minimize_clickHandler(event)"/>
+            <s:Label
+                text="&#x2022;&#x2190;&#x2022;" fontFamily="consolas" fontSize="16" toolTip="Active client connection"
+                visible="{ flexLogView.loggerSocketServer.activeConnection }"/>
 
-                <cs:LinkButton text="[x]" toolTip="Close application"
-                               fontFamily="consolas" fontSize="14" click="closeButton_clickHandler(event)"/>
+            <s:HGroup gap="6" paddingBottom="1" paddingRight="5">
+                <cs:LinkButton
+                    text="₋" toolTip="Minimize the window"
+                    fontFamily="consolas" fontSize="16" click="minimize_clickHandler(event)"/>
+
+                <cs:LinkButton
+                    text="□" toolTip="Maximize the window"
+                    fontFamily="consolas" fontSize="16" click="maximize_clickHandler(event)"/>
+
+                <cs:LinkButton
+                    text="x" toolTip="Close application"
+                    fontFamily="consolas" fontSize="16" click="closeButton_clickHandler(event)"/>
             </s:HGroup>
         </s:BorderContainer>
 
 
-        <mx:ViewStack id="loggersViewStack" width="100%" height="100%" cacheAsBitmap="true">
+        <mx:ViewStack id="loggersViewStack" width="100%" height="100%" cacheAsBitmap="true" creationPolicy="all">
             <view:FlexLogView id="flexLogView" width="100%" height="100%" label="Flex SOS"/>
-            <!--<view:ServerLogView width="100%" height="100%" label="Server Log" />-->
+            <view:ServerLogView id="serverLogView" width="100%" height="100%" label="Server Log"/>
         </mx:ViewStack>
     </s:VGroup>
 
+    <s:Label
+        id="windowSizeLabel" verticalCenter="0" horizontalCenter="0" visible="false"
+        text="[  Size: {this.width} x {this.height}  ]"/>
 
-    <s:Group id="resizeHandler" right="21" bottom="21" width="15" height="15" mouseDown="resizeHandler_clickHandler(event)"
-             buttonMode="true">
+    <s:Group
+        id="resizeHandler" right="21" bottom="21" width="15" height="15"
+        mouseDown="resizeHandler_mouseDownHandler(event)"
+        buttonMode="true">
+
         <s:Path data="M 4 13 L 13 4 L 13 13 L 4 13">
             <s:fill>
                 <s:SolidColor color="0xffffff" alpha="0.6"/>
@@ -108,63 +194,79 @@
         </s:Path>
     </s:Group>
 
-    <fx:Script><![CDATA[
-        import com.greensock.TweenLite;
+    <fx:Script>
+        <![CDATA[
+        import com.greensock.TweenLite
 
-        import ru.koldoon.model.Settings;
+        import ru.koldoon.model.Settings
+        import ru.koldoon.tools.and
 
         [Embed(source="/ru/koldoon/resources/icons/ActivityMonitor16.png")]
         private static const APP_ICON:Class;
 
-        [Embed(source="/ru/koldoon/resources/icons/close_window.png")]
-        private static const CLOSE_ICON:Class;
-
-        [Embed(source="/ru/koldoon/resources/icons/minimize_window.png")]
-        private static const MINIMIZE_ICON:Class;
-
         [Embed(source="/ru/koldoon/resources/images/leather_vintage_textures.jpg")]
         private static const BACKGROUND_BLACK:Class;
 
-        [Embed(source="/ru/koldoon/resources/images/aero-blue-abstract-wallpaper.jpg")]
+        [Embed(source="/ru/koldoon/resources/images/1684736.jpg")]
         private static const BACKGROUND_BLUE:Class;
 
 
-        private function closeButton_clickHandler(event:MouseEvent):void
-        {
-            TweenLite.to(this, 0.5,
-                    {
-                        alpha:      0,
-                        onComplete: function ():void
-                        {
-                            NativeWindow(stage.nativeWindow).close();
-                        }
-                    });
+        private function closeButton_clickHandler(event:MouseEvent):void {
+            TweenLite.to(this, 0.5, {
+                alpha:      0,
+                onComplete: function ():void {
+                    NativeWindow(stage.nativeWindow).close();
+                }
+            });
         }
 
 
-        private function resizeHandler_clickHandler(event:MouseEvent):void
-        {
+        private function resizeHandler_mouseDownHandler(event:MouseEvent):void {
+            // hide controls during resize and show resize label
+            loggersViewStack.includeInLayout = false;
+            loggersViewStack.visible = false;
+            windowSizeLabel.visible = true;
+
+            stage.addEventListener(MouseEvent.MOUSE_UP, onResizeEnd);
             stage.nativeWindow.startResize(NativeWindowResize.BOTTOM_RIGHT);
         }
 
 
-        private function minimize_clickHandler(event:MouseEvent):void
-        {
+        private function onResizeEnd(e:Event):void {
+            stage.removeEventListener(MouseEvent.MOUSE_UP, onResizeEnd);
+
+            windowSizeLabel.visible = false;
+            loggersViewStack.includeInLayout = true;
+            loggersViewStack.visible = true;
+        }
+
+
+        private function minimize_clickHandler(event:MouseEvent):void {
             stage.nativeWindow.minimize()
+        }
+
+
+        private function maximize_clickHandler(event:MouseEvent):void {
+            if (stage.nativeWindow.displayState == NativeWindowDisplayState.MAXIMIZED) {
+                stage.nativeWindow.restore();
+            }
+            else {
+                stage.nativeWindow.maximize();
+            }
         }
 
 
         private var windowProperties:Rectangle = new Rectangle();
 
-        private function closeHandler(event:Event):void
-        {
+
+        private function closeHandler(event:Event):void {
             Settings.getInstance().windowProperies = windowProperties;
             Settings.getInstance().contextViewProperties =
-                    new Rectangle(0, 0, flexLogView.contextContainer.width, flexLogView.bottomContainer.height);
+                new Rectangle(0, 0, flexLogView.contextContainer.width, flexLogView.bottomContainer.height);
         }
 
-        private function addedToStageHandler(event:Event):void
-        {
+
+        private function addedToStageHandler(event:Event):void {
             stage.nativeWindow.addEventListener(Event.CLOSE, closeHandler);
             stage.nativeWindow.addEventListener(NativeWindowBoundsEvent.MOVE, nativeWindow_moveHandler);
             stage.nativeWindow.addEventListener(NativeWindowBoundsEvent.RESIZE, nativeWindow_resizeHandler);
@@ -181,23 +283,29 @@
             flexLogView.bottomContainer.height = contextViewProperties.height;
         }
 
-        private function nativeWindow_moveHandler(event:NativeWindowBoundsEvent = null):void
-        {
+
+        private function nativeWindow_moveHandler(event:NativeWindowBoundsEvent = null):void {
             windowProperties.x = stage.nativeWindow.x;
             windowProperties.y = stage.nativeWindow.y;
         }
 
-        private function nativeWindow_resizeHandler(event:NativeWindowBoundsEvent):void
-        {
+
+        private function nativeWindow_resizeHandler(event:NativeWindowBoundsEvent):void {
             windowProperties.width = stage.nativeWindow.width;
             windowProperties.height = stage.nativeWindow.height;
         }
 
-        private static function getBackgroundClass(backgroundType:String):Class
+
+        private static const BACKGROUND_MAP:Object = {};
         {
-            return backgroundType == Settings.BACKGROUND_TYPE_BLACK
-                    ? BACKGROUND_BLACK
-                    : BACKGROUND_BLUE;
+            BACKGROUND_MAP[Settings.BACKGROUND_TYPE_BLACK] = BACKGROUND_BLACK;
+            BACKGROUND_MAP[Settings.BACKGROUND_TYPE_BLUE] = BACKGROUND_BLUE;
+            BACKGROUND_MAP[Settings.BACKGROUND_TYPE_COLOR] = null;
         }
-        ]]></fx:Script>
+
+        private static function getBackgroundClass(backgroundType:String):Class {
+            return BACKGROUND_MAP[backgroundType];
+        }
+        ]]>
+    </fx:Script>
 </s:WindowedApplication>

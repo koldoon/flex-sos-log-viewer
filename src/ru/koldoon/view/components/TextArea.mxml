@@ -1,0 +1,137 @@
+<?xml version="1.0"?>
+<s:Group
+    xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    xmlns:mx="library://ns.adobe.com/flex/mx"
+    creationComplete="creationCompleteHandler(event)">
+
+    <mx:TextArea
+        id="mxTextArea" left="0" top="0" right="0" bottom="0" paddingLeft="0" paddingRight="0"
+        cachePolicy="on" editable="false" color="white" fontAntiAliasType="advanced" fontGridFitType="subpixel"
+        horizontalScrollPolicy="off" verticalScrollPolicy="off"
+        text="{text}" wordWrap="{wordWrap}"
+        change="updateScrollBarsAndLayout()"
+        valueCommit="updateScrollBarsAndLayout()"
+        creationComplete="updateScrollBarsAndLayout()"/>
+
+    <s:VScrollBar
+        id="verticalScrollBar" top="0" bottom="0" right="0" alpha="0"
+        change="verticalScrollBar_changeHandler(event)"/>
+
+    <s:HScrollBar
+        id="horizontalScrollBar" bottom="0" left="0" right="0" alpha="0"
+        change="horizontalScrollBar_changeHandler(event)"/>
+
+    <fx:Script>
+        <![CDATA[
+        import com.greensock.TweenLite;
+
+        import mx.events.FlexEvent;
+
+        private var _wordWrap:Boolean;
+
+        // -----------------------------------------------------------------------------------
+        // Public API
+        // -----------------------------------------------------------------------------------
+
+        /**
+         * Text to display
+         */
+        [Bindable]
+        public var text:String;
+
+
+        [Bindable]
+        public function get wordWrap():Boolean {
+            return _wordWrap;
+        }
+
+
+        public function set wordWrap(value:Boolean):void {
+            _wordWrap = value;
+            mxTextArea.addEventListener(FlexEvent.UPDATE_COMPLETE, updateScrollBarsAndLayout);
+        }
+
+
+        // -----------------------------------------------------------------------------------
+        // Private
+        // -----------------------------------------------------------------------------------
+
+        private function creationCompleteHandler(event:FlexEvent):void {
+            this.addEventListener(MouseEvent.MOUSE_OVER, mouseOverHandler, false, 0, true);
+            this.addEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler, false, 0, true);
+            this.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler, false, 0, true);
+
+            updateScrollBarsAndLayout();
+        }
+
+
+        private var mouseIsOver:Boolean;
+
+
+        private function mouseOverHandler(event:MouseEvent):void {
+            mouseIsOver = true;
+            TweenLite.to(verticalScrollBar, 0.5, {alpha: 1});
+            TweenLite.to(horizontalScrollBar, 0.5, {alpha: 1});
+        }
+
+
+        private function mouseOutHandler(event:MouseEvent = null):void {
+            // Когда водишь мышой по элементам листа, но иногда возникает неприятное мерцание
+            // скроллера. Задержка сделана чтобы исключить это.
+            mouseIsOver = false;
+            TweenLite.to(this, 0.4, {
+                onComplete: function ():void {
+                    if (!mouseIsOver) {
+                        TweenLite.to(verticalScrollBar, 0.5, {alpha: 0});
+                        TweenLite.to(horizontalScrollBar, 0.5, {alpha: 0});
+                    }
+                }
+            });
+        }
+
+
+        private function mouseDownHandler(event:MouseEvent):void {
+            this.removeEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler);
+            stage.addEventListener(MouseEvent.MOUSE_UP, stage_mouseUpHandler, false, 0, true);
+        }
+
+
+        private function stage_mouseUpHandler(event:MouseEvent):void {
+            stage.removeEventListener(MouseEvent.MOUSE_UP, stage_mouseUpHandler);
+            this.addEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler, false, 0, true);
+
+            if (event.target != this) {
+                mouseOutHandler();
+            }
+        }
+
+
+        private function updateScrollBarsAndLayout(event:Event = null):void {
+            mxTextArea.removeEventListener(FlexEvent.UPDATE_COMPLETE, updateScrollBarsAndLayout);
+
+            verticalScrollBar.maximum = mxTextArea.maxVerticalScrollPosition;
+            verticalScrollBar.value = mxTextArea.verticalScrollPosition;
+            horizontalScrollBar.maximum = mxTextArea.maxHorizontalScrollPosition;
+            horizontalScrollBar.value = mxTextArea.horizontalScrollPosition;
+
+            verticalScrollBar.visible = mxTextArea.maxVerticalScrollPosition > 0;
+            horizontalScrollBar.visible = mxTextArea.maxHorizontalScrollPosition > 0;
+
+            verticalScrollBar.bottom = horizontalScrollBar.visible ? 15 : 0;
+            horizontalScrollBar.right = verticalScrollBar.visible ? 15 : 0;
+            mxTextArea.right = verticalScrollBar.visible ? 16 : 0;
+            mxTextArea.bottom = horizontalScrollBar.visible ? 16 : 0;
+        }
+
+
+        private function verticalScrollBar_changeHandler(event:Event):void {
+            mxTextArea.verticalScrollPosition = verticalScrollBar.value;
+        }
+
+
+        private function horizontalScrollBar_changeHandler(event:Event):void {
+            mxTextArea.horizontalScrollPosition = horizontalScrollBar.value;
+        }
+        ]]>
+    </fx:Script>
+</s:Group>

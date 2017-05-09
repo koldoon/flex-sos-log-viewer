@@ -1,39 +1,41 @@
 <?xml version="1.0"?>
-<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-                autoDrawBackground="false" width="100%" cacheAsBitmap="true">
+<s:ItemRenderer
+    xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    xmlns:mx="library://ns.adobe.com/flex/mx"
+    autoDrawBackground="false" width="100%" cachePolicy="on">
 
-    <s:Label id="textDisplay" left="5" right="{countDisplay.width + 6}" bottom="2" top="2"
-             color="white" maxDisplayedLines="1" fontFamily="consolas" fontSize="12"/>
+    <mx:Label
+        id="textDisplay" left="5" right="{countDisplay.width + 6}" bottom="0" top="0"
+        color="white" minWidth="10" fontFamily="consolas_mx" fontSize="12"/>
 
-    <s:Label id="countDisplay" right="5" bottom="2" top="2"
-             color="0x6bd56b" maxDisplayedLines="1" fontFamily="consolas" fontSize="12"/>
+    <mx:Label
+        id="countDisplay" right="5" bottom="0" top="0" minWidth="10"
+        color="0x6bd56b" fontFamily="consolas_mx" fontSize="12"/>
 
-    <fx:Script><![CDATA[
+    <fx:Script>
+        <![CDATA[
         import ru.koldoon.model.ContextItem;
 
-        override public function set data(value:Object):void
-        {
+        override public function set data(value:Object):void {
             super.data = value;
 
-            if (data as ContextItem)
-            {
+            if (data as ContextItem) {
                 textDisplay.text = ContextItem(data).label;
 
-                if (ContextItem(data).count > 1)
-                {
+                if (ContextItem(data).count > 1) {
                     countDisplay.visible = true;
                     countDisplay.text = "(" + ContextItem(data).count + ")";
                 }
-                else
-                {
+                else {
                     countDisplay.visible = false;
                     countDisplay.text = "";
                 }
             }
-            else
-            {
+            else {
                 textDisplay.text = "";
+                countDisplay.text = "";
             }
         }
-        ]]></fx:Script>
+        ]]>
+    </fx:Script>
 </s:ItemRenderer>

@@ -15,8 +15,7 @@
         /**
          *  @private
          */
-        override public function beginHighlightBitmapCapture():Boolean
-        {
+        override public function beginHighlightBitmapCapture():Boolean {
             var needUpdate:Boolean = super.beginHighlightBitmapCapture();
 
             // Draw an opaque rect that fill our entire skin. Our background
@@ -30,11 +29,11 @@
             return needUpdate;
         }
 
+
         /**
          *  @private
          */
-        override public function endHighlightBitmapCapture():Boolean
-        {
+        override public function endHighlightBitmapCapture():Boolean {
             var needUpdate:Boolean = super.endHighlightBitmapCapture();
 
             // Clear the rect we drew in beginBitmapCapture();
@@ -43,52 +42,50 @@
             return needUpdate;
         }
 
-        private function creationCompleteHandler(event:FlexEvent):void
-        {
+
+        private function creationCompleteHandler(event:FlexEvent):void {
             this.addEventListener(MouseEvent.MOUSE_OVER, mouseOverHandler, false, 0, true);
             this.addEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler, false, 0, true);
             this.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler, false, 0, true);
         }
 
+
         private var mouseIsOver:Boolean;
 
-        private function mouseOverHandler(event:MouseEvent):void
-        {
+
+        private function mouseOverHandler(event:MouseEvent):void {
             mouseIsOver = true;
-            TweenLite.to(verticalScrollBar, 0.5, { alpha: 1 });
-            TweenLite.to(horizontalScrollBar, 0.5, { alpha: 1 });
+            TweenLite.to(verticalScrollBar, 0.5, {alpha: 1});
+            TweenLite.to(horizontalScrollBar, 0.5, {alpha: 1});
         }
 
-        private function mouseOutHandler(event:MouseEvent = null):void
-        {
+
+        private function mouseOutHandler(event:MouseEvent = null):void {
             // Когда водишь мышой по элементам листа, но иногда возникает неприятное мерцание
             // скроллера. Задержка сделана чтобы исключить это.
             mouseIsOver = false;
             TweenLite.to(this, 0.4, {
-                onComplete: function ():void
-                {
-                    if (!mouseIsOver)
-                    {
-                        TweenLite.to(verticalScrollBar, 0.5, { alpha: 0 });
-                        TweenLite.to(horizontalScrollBar, 0.5, { alpha: 0 });
+                onComplete: function ():void {
+                    if (!mouseIsOver) {
+                        TweenLite.to(verticalScrollBar, 0.5, {alpha: 0});
+                        TweenLite.to(horizontalScrollBar, 0.5, {alpha: 0});
                     }
                 }
             });
         }
 
-        private function mouseDownHandler(event:MouseEvent):void
-        {
+
+        private function mouseDownHandler(event:MouseEvent):void {
             this.removeEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler);
             stage.addEventListener(MouseEvent.MOUSE_UP, stage_mouseUpHandler, false, 0, true);
         }
 
-        private function stage_mouseUpHandler(event:MouseEvent):void
-        {
+
+        private function stage_mouseUpHandler(event:MouseEvent):void {
             stage.removeEventListener(MouseEvent.MOUSE_UP, stage_mouseUpHandler);
             this.addEventListener(MouseEvent.MOUSE_OUT, mouseOutHandler, false, 0, true);
 
-            if (event.target != this)
-            {
+            if (event.target != this) {
                 mouseOutHandler();
             }
         }
@@ -96,8 +93,8 @@
     </fx:Script>
 
     <s:VScrollBar id="verticalScrollBar" visible="false" alpha="0"
-                  skinClass="ru.koldoon.resources.skins.scroller.VScrollBarLightSkin" />
+                  skinClass="ru.koldoon.resources.skins.scroller.VScrollBarLightSkin"/>
 
     <s:HScrollBar id="horizontalScrollBar" visible="false" alpha="0"
-                  skinClass="ru.koldoon.resources.skins.scroller.HScrollBarLightSkin" />
+                  skinClass="ru.koldoon.resources.skins.scroller.HScrollBarLightSkin"/>
 </s:SparkSkin>

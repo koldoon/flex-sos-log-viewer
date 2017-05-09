@@ -5,11 +5,12 @@ package ru.koldoon.tools {
      * @param value
      * @return
      */
-    public function leadingZero(value:Number):String
-    {
-        if (value < 10)
+    public function leadingZero(value:Number):String {
+        if (value < 10) {
             return "0" + value.toString();
-        else
+        }
+        else {
             return value.toString();
+        }
     }
 }

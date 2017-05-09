@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<LinkButton xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns="ru.koldoon.view.components.*"
-
-            alpha="{ toggleProperty ? 1 : 0.4 }"
-            click="clickHandler(event)">
+<LinkButton
+    xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns="ru.koldoon.view.components.*"
+    alpha="{ toggleProperty ? 1 : 0.4 }"
+    click="clickHandler(event)">
 
     <fx:Metadata>
         [Event(name="change", type="flash.events.Event")]
@@ -10,11 +10,15 @@
 
     <fx:Declarations>
         <fx:Boolean id="toggleProperty"/>
+        <fx:Boolean id="optionMode"/>
     </fx:Declarations>
 
     <fx:Script><![CDATA[
-        private function clickHandler(event:MouseEvent):void
-        {
+        private function clickHandler(event:MouseEvent):void {
+            if (optionMode) {
+                return;
+            }
+
             toggleProperty = !toggleProperty;
             dispatchEvent(new Event(Event.CHANGE));
         }
